@@ -53,7 +53,7 @@
 
   const TEXT_FUNCTIONS = new Set([
     'sin', 'cos', 'tan', 'tg', 'ctg', 'cot', 'sec', 'csc',
-    'arcsin', 'arccos', 'arctan', 'sinh', 'cosh', 'tanh',
+    'arcsin', 'arccos', 'arctan', 'arctg', 'arcctg', 'arccot', 'sinh', 'cosh', 'tanh',
     'ln', 'log', 'lg', 'exp', 'lim', 'max', 'min', 'sup', 'inf',
     'det', 'dim', 'arg', 'deg', 'mod', 'gcd',
   ]);

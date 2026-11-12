@@ -1,7 +1,8 @@
 (function () {
   const SYMBOLS = [
     { label: 'u/v', insert: '\\frac{}{}', cursorOffset: -3, title: 'Ułamek' },
-    { label: '√', insert: '\\sqrt{}', cursorOffset: -1, title: 'Pierwiastek' },
+    { label: '√', insert: '\\sqrt{}', cursorOffset: -1, title: 'Pierwiastek kwadratowy' },
+    { label: 'ⁿ√', insert: '\\sqrt[]{}', cursorOffset: -3, title: 'Pierwiastek n-tego stopnia' },
     { label: 'xⁿ', insert: '^{}', cursorOffset: -1, title: 'Indeks górny / potęga' },
     { label: 'xₙ', insert: '_{}', cursorOffset: -1, title: 'Indeks dolny' },
     { label: 'Δ', insert: '\\Delta ', title: 'Delta (przyrost / błąd graniczny)' },
@@ -23,6 +24,16 @@
     { label: '∑', insert: '\\sum_{i=1}^{n} ', title: 'Suma' },
     { label: '∫', insert: '\\int_{}^{} ', cursorOffset: -4, title: 'Całka oznaczona' },
     { label: '( )', insert: '\\left(  \\right)', cursorOffset: -8, title: 'Duże nawiasy' },
+    { label: 'sin', insert: '\\sin ', title: 'Sinus' },
+    { label: 'cos', insert: '\\cos ', title: 'Cosinus' },
+    { label: 'tg', insert: '\\tg ', title: 'Tangens' },
+    { label: 'ctg', insert: '\\ctg ', title: 'Cotangens' },
+    { label: 'arcsin', insert: '\\arcsin ', title: 'Arcus sinus' },
+    { label: 'arccos', insert: '\\arccos ', title: 'Arcus cosinus' },
+    { label: 'arctg', insert: '\\arctg ', title: 'Arcus tangens' },
+    { label: 'arctan', insert: '\\arctan ', title: 'Arcus tangens (notacja międzynarodowa)' },
+    { label: 'arcctg', insert: '\\arcctg ', title: 'Arcus cotangens' },
+    { label: 'ln', insert: '\\ln ', title: 'Logarytm naturalny' },
   ];
 
   const TEMPLATES = [
