@@ -1,0 +1,23 @@
+WZORNIK OFFLINE — Instrukcja uruchomienia i obslugi
+======================================================
+
+1. URUCHOMIENIE (bez instalacji i bez internetu):
+   Kliknij dwukrotnie plik:
+     - Uruchom.vbs   (zalecane — otwiera czyste okno aplikacji bez konsoli)
+     lub
+     - Uruchom.bat
+
+2. JAK PISAC WZORY:
+   - Pisz odrecznie rysikiem, palcem lub myszka na bialym plotnie.
+   - Mozesz tez wkleic zrzut ekranu (Ctrl+V) lub przeciagnac plik PNG/JPG.
+   - Po chwili przerwy wzor rozpozna sie automatycznie (lub kliknij "Rozpoznaj teraz").
+   - W razie potrzeby popraw pojedyncze znaki klikajac szybkie symbole albo edytujac LaTeX.
+
+3. KOPIOWANIE DO SPRAWOZDANIA:
+   - "Kopiuj tekst": wkleja czytelny tekst Unicode (np. Δx = √((∂f/∂a · u(a))²))
+     idealny do Worda, Google Docs, Moodle czy notatek.
+   - "Kopiuj do Worda (MathML)": wklej w Microsoft Word (Ctrl+V), aby otrzymac
+     prawdziwe, edytowalne rownanie Worda.
+   - "Kopiuj LaTeX" / "Kopiuj $$...$$": do Overleafa, Markdowna lub trybu LaTeX w Wordzie.
+   - "Kopiuj obraz": kopiuje rysunek wzoru jako PNG.
+

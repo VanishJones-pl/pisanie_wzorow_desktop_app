@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wzornik Offline — Odręczne wzory do sprawozdań</title>
+  <link rel="stylesheet" href="/vendor/katex/katex.min.css">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-logo" aria-hidden="true">∑</div>
+        <div>
+          <h1>Wzornik Offline</h1>
+          <p class="subtitle">Odręczne wzory do sprawozdań z fizyki i metrologii</p>
+        </div>
+      </div>
+
+      <div class="topbar-actions">
+        <div id="modelStatus" class="status-pill status-loading" title="Lokalny silnik rozpoznawania pisma matematycznego">
+          <span class="status-dot"></span>
+          <span id="modelStatusText">Ładowanie silnika OCR...</span>
+        </div>
+        <button id="btnTemplates" class="btn btn-ghost" type="button">Szablony</button>
+        <button id="btnHistory" class="btn btn-ghost" type="button">Historia (<span id="historyCount">0</span>)</button>
+      </div>
+    </header>
+
+    <main class="workspace">
+      <!-- LEFT: Handwriting Canvas -->
+      <section class="panel canvas-panel">
+        <div class="panel-header">
+          <div class="tool-group">
+            <button id="toolPen" class="btn-tool active" type="button" title="Pióro (P)">Pióro</button>
+            <button id="toolEraser" class="btn-tool" type="button" title="Gumka kresek (E)">Gumka</button>
+            <span class="divider"></span>
+            <label class="inline-label" for="strokeWidth">Grubość:</label>
+            <select id="strokeWidth" class="select-compact" title="Grubość linii">
+              <option value="2.5">Cienka</option>
+              <option value="4" selected>Średnia</option>
+              <option value="6.5">Gruba</option>
+            </select>
+            <label class="inline-label" for="bgPattern">Tło:</label>
+            <select id="bgPattern" class="select-compact" title="Tło płótna">
+              <option value="grid" selected>Kratka</option>
+              <option value="lines">Linie</option>
+              <option value="blank">Czyste</option>
+            </select>
+          </div>
+
+          <div class="tool-group">
+            <button id="btnUndo" class="btn btn-icon" type="button" title="Cofnij (Ctrl+Z)" disabled>↶ Cofnij</button>
+            <button id="btnRedo" class="btn btn-icon" type="button" title="Ponów (Ctrl+Y)" disabled>↷ Ponów</button>
+            <button id="btnClear" class="btn btn-danger-soft" type="button" title="Wyczyść płótno (Esc)">Wyczyść</button>
+          </div>
+        </div>
+
+        <div id="canvasWrap" class="canvas-wrap bg-grid">
+          <canvas id="drawCanvas"></canvas>
+          <div id="canvasPlaceholder" class="canvas-placeholder">
+            <div class="placeholder-title">Napisz wzór odręcznie rysikiem lub myszką</div>
+            <div class="placeholder-sub">Możesz też wkleić zrzut ekranu (Ctrl+V) lub upuścić plik graficzny PNG/JPG</div>
+          </div>
+          <div id="ocrSpinner" class="ocr-badge hidden">Rozpoznaję wzór...</div>
+        </div>
+
+        <div class="panel-footer">
+          <label class="checkbox-label">
+            <input id="autoRecognize" type="checkbox" checked>
+            <span>Rozpoznawaj automatycznie po napisaniu</span>
+          </label>
+          <div class="footer-right">
+            <span id="inferenceMeta" class="meta-text"></span>
+            <button id="btnRecognize" class="btn btn-primary" type="button">Rozpoznaj teraz</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- RIGHT: Preview, Edit & Copy Formats -->
+      <section class="panel result-panel">
+        <div class="result-section">
+          <div class="section-label-row">
+            <span class="section-label">Podgląd matematyczny</span>
+            <span id="katexError" class="error-badge hidden"></span>
+          </div>
+          <div id="mathPreview" class="math-preview">
+            <span class="preview-empty">Tutaj pojawi się rozpoznany wzór...</span>
+          </div>
+        </div>
+
+        <div class="result-section">
+          <div class="section-label-row">
+            <span class="section-label">Szybkie symbole i poprawki</span>
+            <span class="hint-small">Kliknij, aby wstawić w kodzie LaTeX</span>
+          </div>
+          <div id="symbolBar" class="symbol-bar"></div>
+        </div>
+
+        <div class="result-section">
+          <div class="section-label-row">
+            <label class="section-label" for="latexInput">Kod LaTeX (możesz edytować ręcznie)</label>
+            <label class="checkbox-label small">
+              <input id="showRawToggle" type="checkbox">
+              <span>Surowy wynik OCR</span>
+            </label>
+          </div>
+          <textarea id="latexInput" class="latex-input" rows="3" spellcheck="false" placeholder="Np. u_c(y) = \sqrt{\left(\frac{\partial f}{\partial x_1} u(x_1)\right)^2 + \dots}"></textarea>
+        </div>
+
+        <div class="result-section copy-section">
+          <div class="section-label-row">
+            <span class="section-label">Gotowa treść do skopiowania</span>
+          </div>
+
+          <!-- Primary Plain Unicode Text Card -->
+          <div class="copy-card copy-card-featured">
+            <div class="copy-card-head">
+              <div>
+                <strong>Zwykły tekst (Unicode)</strong>
+                <span class="copy-desc">Do wklejenia bezpośrednio jako treść (Word, Google Docs, Moodle, notatki)</span>
+              </div>
+              <button id="btnCopyUnicode" class="btn btn-primary" type="button">Kopiuj tekst</button>
+            </div>
+            <div id="unicodeOutput" class="copy-preview-box">—</div>
+          </div>
+
+          <!-- Action grid for Word MathML, LaTeX, Image -->
+          <div class="copy-grid">
+            <div class="copy-card">
+              <div class="copy-card-head">
+                <div>
+                  <strong>Równanie Word / LibreOffice</strong>
+                  <span class="copy-desc">Format MathML (w Wordzie wklej Ctrl+V jako tekst)</span>
+                </div>
+              </div>
+              <div class="copy-btn-row">
+                <button id="btnCopyMathML" class="btn btn-secondary" type="button">Kopiuj do Worda (MathML)</button>
+              </div>
+            </div>
+
+            <div class="copy-card">
+              <div class="copy-card-head">
+                <div>
+                  <strong>LaTeX / Markdown / Obraz</strong>
+                  <span class="copy-desc">Do Overleafa, Worda (Alt+=) lub jako grafika</span>
+                </div>
+              </div>
+              <div class="copy-btn-row">
+                <button id="btnCopyLatex" class="btn btn-secondary" type="button">Kopiuj LaTeX</button>
+                <button id="btnCopyDollars" class="btn btn-secondary" type="button">Kopiuj $$...$$</button>
+                <button id="btnCopyImage" class="btn btn-secondary" type="button">Kopiuj obraz</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Side Drawer: Templates / History -->
+  <aside id="sideDrawer" class="drawer hidden" aria-hidden="true">
+    <div class="drawer-header">
+      <h2 id="drawerTitle">Szablony</h2>
+      <button id="btnCloseDrawer" class="btn btn-ghost" type="button">✕ Zamknij</button>
+    </div>
+    <div id="drawerBody" class="drawer-body"></div>
+  </aside>
+  <div id="drawerBackdrop" class="drawer-backdrop hidden"></div>
+
+  <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+
+  <script src="/vendor/katex/katex.min.js"></script>
+  <script src="/vendor/temml/temml.min.js"></script>
+  <script src="/latex-to-unicode.js"></script>
+  <script src="/app.js"></script>
+</body>
+</html>
+

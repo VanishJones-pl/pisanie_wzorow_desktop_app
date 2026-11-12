@@ -1,0 +1,16 @@
+{
+  "name": "wzory-offline",
+  "version": "1.0.0",
+  "description": "Offline narzędzie do odręcznego zapisywania i rozpoznawania wzorów fizycznych oraz metrologicznych",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": ["math", "ocr", "latex", "physics", "metrology", "offline"],
+  "license": "MIT",
+  "dependencies": {
+    "@huggingface/transformers": "^4.0.1",
+    "katex": "^0.16.45",
+    "temml": "^0.13.4"
+  }
+}
