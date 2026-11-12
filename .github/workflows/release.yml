@@ -1,0 +1,105 @@
+name: Build Windows Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Wersja wydania (np. 1.0.0)'
+        required: false
+        default: '1.0.0'
+
+permissions:
+  contents: write
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 24 (x64)
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Resolve release version
+        id: meta
+        shell: pwsh
+        run: |
+          if ("${{ github.ref_type }}" -eq "tag") {
+            $tag = "${{ github.ref_name }}"
+            $ver = $tag.TrimStart('v')
+          } else {
+            $ver = "${{ github.event.inputs.version }}".TrimStart('v')
+            if ([string]::IsNullOrWhiteSpace($ver)) { $ver = "1.0.0" }
+            $tag = "v$ver"
+          }
+          "tag=$tag" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          "version=$ver" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+
+      - name: Build Portable package and ZIP
+        shell: pwsh
+        run: |
+          powershell -ExecutionPolicy Bypass -File scripts/build-portable.ps1 -ZipPath "dist/WzornikOffline-Portable-win-x64.zip"
+
+      - name: Ensure Inno Setup is available
+        shell: pwsh
+        run: |
+          $iscc = Get-Command iscc.exe -ErrorAction SilentlyContinue
+          if ($iscc) {
+            $isccPath = $iscc.Source
+          } else {
+            $isccPath = @(
+              "C:\Program Files (x86)\Inno Setup 6\ISCC.exe",
+              "C:\Program Files\Inno Setup 6\ISCC.exe"
+            ) | Where-Object { Test-Path $_ } | Select-Object -First 1
+          }
+          if (-not $isccPath) {
+            choco install innosetup -y --no-progress
+            $isccPath = "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
+          }
+          if (-not (Test-Path $isccPath)) {
+            throw "Nie znaleziono kompilatora Inno Setup (ISCC.exe)."
+          }
+          "ISCC_PATH=$isccPath" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+      - name: Build Windows Installer (.exe)
+        shell: pwsh
+        run: |
+          & "$env:ISCC_PATH" "/DAppVersion=${{ steps.meta.outputs.version }}" "installer\WzornikOffline.iss"
+          if ($LASTEXITCODE -ne 0) {
+            throw "ISCC zakonczylo sie bledem ($LASTEXITCODE)."
+          }
+
+      - name: Publish GitHub Release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $tag = "${{ steps.meta.outputs.tag }}"
+          $lines = @(
+            "Gotowa wersja **Wzornik Offline ($tag)** dla systemu Windows (64-bit) — działa całkowicie offline, bez instalowania Node.js i bez ``npm install``.",
+            "",
+            "### Który plik pobrać?",
+            "- **``WzornikOffline-Setup.exe``** *(zalecane)* — pobierz jeden plik, kliknij i zainstaluj. Utworzy skrót na Pulpicie oraz w Menu Start.",
+            "- **``WzornikOffline-Portable-win-x64.zip``** — wersja przenośna (rozpakuj i uruchom ``WzornikOffline.exe``).",
+            "",
+            "> **Uwaga:** Przy pierwszym uruchomieniu pliku niepodpisanego płatnym certyfikatem Microsoft SmartScreen może wyświetlić okno ostrzegawcze — kliknij **Więcej informacji → Uruchom mimo to**."
+          )
+          $notesFile = Join-Path $env:TEMP "release-notes.md"
+          Set-Content -Path $notesFile -Value ($lines -join "`n") -Encoding UTF8
+
+          $exists = $false
+          gh release view $tag *> $null
+          if ($LASTEXITCODE -eq 0) { $exists = $true }
+
+          if ($exists) {
+            gh release upload $tag "dist/WzornikOffline-Setup.exe" "dist/WzornikOffline-Portable-win-x64.zip" --clobber
+          } else {
+            gh release create $tag "dist/WzornikOffline-Setup.exe" "dist/WzornikOffline-Portable-win-x64.zip" --target "${{ github.sha }}" --title "Wzornik Offline $tag" --notes-file $notesFile
+          }
