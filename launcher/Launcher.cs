@@ -8,7 +8,7 @@ using System.Windows.Forms;
 [assembly: AssemblyTitle("Wzornik Offline")]
 [assembly: AssemblyDescription("Offline narzędzie do odręcznego zapisywania i rozpoznawania wzorów")]
 [assembly: AssemblyProduct("Wzornik Offline")]
-[assembly: AssemblyVersion("1.0.1.0")]
+[assembly: AssemblyVersion("1.0.2.0")]
 
 namespace WzornikLauncher
 {

@@ -83,7 +83,7 @@
     },
   ];
 
-  const HISTORY_KEY = 'wzornik_offline_history_v1';
+  const HISTORY_KEY = 'wzornik_offline_history_v2';
   const MAX_HISTORY = 30;
 
   // DOM Elements
@@ -935,6 +935,9 @@
   });
 
   // Init
+  try {
+    localStorage.removeItem('wzornik_offline_history_v1');
+  } catch (_) {}
   buildSymbolBar();
   updateHistoryCount();
   new ResizeObserver(resizeCanvas).observe(canvasWrap);
